@@ -48,7 +48,7 @@ class DbService {
             const insertId = await new Promise((resolve, reject) => {
                 const query = "INSERT INTO users (userName, password, created_at) VALUES (?,?,?);";
 
-                connection.query(query, [name, password, dateAdded] , (err, result) => {
+                connection.query(query, [userName, password, dateAdded] , (err, result) => {
                     if (err) reject(new Error(err.message));
                     resolve(result.insertId);
                 })
@@ -87,9 +87,9 @@ class DbService {
         try {
             id = parseInt(id, 10); 
             const response = await new Promise((resolve, reject) => {
-                const query = "UPDATE users SET name = ? WHERE id = ?";
+                const query = "UPDATE users SET name = ? WHERE userName = ?";
     
-                connection.query(query, [name, id] , (err, result) => {
+                connection.query(query, [userName, id] , (err, result) => {
                     if (err) reject(new Error(err.message));
                     resolve(result.affectedRows);
                 })
