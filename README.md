@@ -1,7 +1,5 @@
-#Node.js, Express & MySQL Tutorial.
+# Basic Node + Express 
+# Main logic forked from ExpressMySQL boilerplate.
+# Blockchain-HDWallet logic is added on top of it
 
-
-In this video, we will use the Express framework with HTML, CSS, and JavaScript to build a simple CRUD (Create, Read, Update, Delete) App.
-I will show you how to make queries using MySQL and how to connect that to our express app to build a fullstack application.
-
-https://youtu.be/vrj9AohVhPA
+![Basic ExpressMy](https://user-images.githubusercontent.com/10539949/153817032-210bf079-4e7d-48d8-b590-75498088376f.gif)
