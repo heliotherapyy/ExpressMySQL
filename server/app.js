@@ -2,9 +2,13 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const dotenv = require('dotenv');
+const lightwallet = require('eth-lightwallet');
+const dbService = require('./dbService');
+
 dotenv.config();
 
-const dbService = require('./dbService');
+const keystoreModule = lightwallet.keystore;
+const db = dbService.getDbServiceInstance();
 
 app.use(cors());
 app.use(express.json());
@@ -12,23 +16,53 @@ app.use(express.urlencoded({ extended : false }));
 
 // create a new user
 app.post('/user', async (request, response) => {
-  const { username, password } = request.query;
+  console.log("/user POST is called");
+  const { username, password } = request.body;
 
   if (!username || !password) throw "Please pass both username and password";
-
-  const db = dbService.getDbServiceInstance();
-
-  // TODO make this more solid
-  // How though?
+  
+  // TODO @lkim | HOW DO YOU KNOW THE DUPLICATE USER IS FOUND?
   const foundUser = await db.searchByName(username);
     
   if (foundUser.length) {
     return response.json({ data: foundUser[0]});
   }
 
+  // Create a new user
   try {
-    const result = await db.insertNewUser(username, password);
-    return response.json({ data: result });
+    // 1. Generate a random mnemonic
+    const seedPhrase = keystoreModule.generateRandomSeed();
+
+    // 2. Generate password and crypto address by using KeyStore Module
+    keystoreModule.createVault({
+      password, 
+      seedPhrase,
+      hdPathString: "m/44'/60'/0'/0",
+    }, (err, ks) => {
+      if (err) throw err;
+
+      ks.keyFromPassword(password, async (err, pwDerivedKey) => {
+        if (err) throw err;
+
+        ks.generateNewAddress(pwDerivedKey);
+        
+        const targetIndex = 0;
+        const address = ks.getAddresses()[targetIndex];
+        const privateKey = ks.encPrivKeys[address.split('0x')[1]].key;
+
+        let newUser = {};
+        Object.assign(newUser, {
+          name: username,
+          password, 
+          address,
+          privateKey
+        });
+
+        const result = await db.insertNewUser(newUser);
+        
+        return response.json({ data: result });
+      })
+    });
   } catch (err) {
     console.log(err);
   }
