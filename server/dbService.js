@@ -41,27 +41,38 @@ class DbService {
         }
     }
 
+    /**
+     * 
+     * @param {Object} newUser
+     * @returns Object
+     */
+    async insertNewUser(newUser) {
+      const { name, password, address, privateKey } = newUser;
+      if (!(name && password && address && privateKey)) {
+        throw "`insertNewUser` requires all four different fields (name, password, address, privateKey";
+      }
 
-    async insertNewUser(name, password) {
-        try {
-            const dateAdded = new Date();
-            const insertId = await new Promise((resolve, reject) => {
-                const query = "INSERT INTO users (userName, password, created_at) VALUES (?,?,?);";
+      try {
+        const dateAdded = new Date();
+        const insertId = await new Promise((resolve, reject) => {
+          const query = "INSERT INTO users (userName, password, created_at, address, privateKey) VALUES (?,?,?,?,?);";
 
-                connection.query(query, [userName, password, dateAdded] , (err, result) => {
-                    if (err) reject(new Error(err.message));
-                    resolve(result.insertId);
-                })
-            });
-            return {
-                id : insertId,
-                name,
-                password,
-                dateAdded,
-            };
-        } catch (error) {
-            console.log(error);
-        }
+          connection.query(query, [name, password, dateAdded, address, privateKey] , (err, result) => {
+              if (err) reject(new Error(err.message));
+              resolve(result.insertId);
+          })
+        });
+        return {
+            id : insertId,
+            name,
+            password,
+            dateAdded,
+            address,
+            privateKey: "NOT SHOWN TO PUBLIC"
+        };
+      } catch (error) {
+          console.log(error);
+      }
     }
 
     async deleteRowById(id) {
@@ -87,9 +98,9 @@ class DbService {
         try {
             id = parseInt(id, 10); 
             const response = await new Promise((resolve, reject) => {
-                const query = "UPDATE users SET name = ? WHERE userName = ?";
+                const query = "UPDATE users SET name = ? WHERE id = ?";
     
-                connection.query(query, [userName, id] , (err, result) => {
+                connection.query(query, [name, id] , (err, result) => {
                     if (err) reject(new Error(err.message));
                     resolve(result.affectedRows);
                 })
